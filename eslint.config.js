@@ -6,7 +6,8 @@ module.exports = defineConfig([
   expoConfig,
   {
     ignores: [
-      "dist/*",
+      "dist",
+      "dist/**/*",
       "index.ts",
       "rootStore.example.ts",
       "nativewind-env.d.ts",
