@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import * as ScreenOrientation from "expo-screen-orientation";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { pokerSocket } from "../services/pokerSocket";
 import { useAuthStore } from "../state/authStore";
@@ -53,16 +52,10 @@ export default function PokerGameScreen() {
     };
   }, [gameState]);
 
-  const handleRotateDevice = async () => {
+  const handleRotateDevice = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowLandscapePrompt(false);
-
-    try {
-      // Unlock orientation and suggest landscape
-      await ScreenOrientation.unlockAsync();
-    } catch (error) {
-      // Orientation API might not be available, user will rotate manually
-    }
+    // User will manually rotate their device
   };
 
   const handleDismissPrompt = () => {

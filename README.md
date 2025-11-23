@@ -281,8 +281,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
   "@walletconnect/web3wallet": "1.16.1",
   "@walletconnect/qrcode-modal": "1.8.0",
   "@react-native-community/datetimepicker": "8.4.1",
-  "expo-image-picker": "16.1.4",
-  "expo-screen-orientation": "9.0.7"
+  "expo-image-picker": "16.1.4"
 }
 ```
 
