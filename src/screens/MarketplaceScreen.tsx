@@ -39,8 +39,8 @@ export default function MarketplaceScreen() {
           <View className="px-6 pt-4 pb-6">
             <View className="flex-row items-center justify-between mb-2">
               <Text className="text-white text-3xl font-bold">Marketplace</Text>
-              <View className="bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20">
-                <Text className="text-emerald-400 font-semibold">
+              <View className="bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20">
+                <Text className="text-amber-400 font-semibold">
                   {user?.chipBalance.toLocaleString()} CHiP$
                 </Text>
               </View>

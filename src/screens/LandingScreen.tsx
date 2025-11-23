@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -56,13 +56,14 @@ export default function LandingScreen({ onLoginSuccess }: LandingScreenProps) {
 function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegram" | "email" | "c420") => void }) {
   return (
     <View className="flex-1 justify-center px-6">
-      {/* Logo/Title */}
+      {/* Logo */}
       <View className="items-center mb-12">
-        <View className="bg-emerald-500/10 p-6 rounded-3xl mb-4">
-          <Ionicons name="game-controller" size={60} color="#10b981" />
-        </View>
-        <Text className="text-5xl font-bold text-white mb-2">Club 420</Text>
-        <Text className="text-emerald-400 text-xl font-semibold">Poker</Text>
+        <Image
+          source={require("../../assets/image-1763857797.png")}
+          style={{ width: 280, height: 140 }}
+          resizeMode="contain"
+        />
+        <Text className="text-amber-400 text-xl font-semibold mt-4">Poker</Text>
       </View>
 
       {/* Login Options */}
@@ -87,8 +88,8 @@ function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegr
           onPress={() => onMethodSelect("email")}
           className="bg-white/5 border-2 border-white/10 rounded-2xl p-5 flex-row items-center active:opacity-80"
         >
-          <View className="bg-emerald-500/20 p-3 rounded-full mr-4">
-            <Ionicons name="mail" size={24} color="#10b981" />
+          <View className="bg-amber-500/20 p-3 rounded-full mr-4">
+            <Ionicons name="mail" size={24} color="#f59e0b" />
           </View>
           <View className="flex-1">
             <Text className="text-white text-lg font-semibold">Email Sign Up</Text>
