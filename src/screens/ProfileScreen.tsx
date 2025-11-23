@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "../state/authStore";
 import { useAppStore } from "../state/appStore";
 
@@ -12,6 +13,7 @@ export default function ProfileScreen() {
   const logout = useAuthStore((s) => s.logout);
   const transactions = useAppStore((s) => s.transactions);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const userTransactions = transactions.filter((t) => t.userId === user?.id);
 
@@ -32,6 +34,11 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     logout();
+  };
+
+  const handleEditProfile = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowEditModal(true);
   };
 
   if (!user) {
@@ -66,16 +73,36 @@ export default function ProfileScreen() {
               <View className="bg-white/5 rounded-3xl p-6 border border-white/10">
                 {/* Avatar & Username */}
                 <View className="items-center mb-6">
-                  <View className="bg-amber-500/20 w-24 h-24 rounded-full items-center justify-center mb-4 border-4 border-amber-500/30">
-                    <Text className="text-amber-400 text-4xl font-bold">
-                      {user.username ? user.username.charAt(0).toUpperCase() : "?"}
-                    </Text>
+                  <View className="relative mb-4">
+                    {user.avatarUrl ? (
+                      <Image
+                        source={{ uri: user.avatarUrl }}
+                        className="w-24 h-24 rounded-full border-4 border-amber-500/30"
+                      />
+                    ) : (
+                      <View className="bg-amber-500/20 w-24 h-24 rounded-full items-center justify-center border-4 border-amber-500/30">
+                        <Text className="text-amber-400 text-4xl font-bold">
+                          {user.username ? user.username.charAt(0).toUpperCase() : "?"}
+                        </Text>
+                      </View>
+                    )}
+                    <Pressable
+                      onPress={handleEditProfile}
+                      className="absolute -bottom-1 -right-1 bg-amber-500 w-8 h-8 rounded-full items-center justify-center border-2 border-[#0a0f1e] active:opacity-80"
+                    >
+                      <Ionicons name="pencil" size={14} color="white" />
+                    </Pressable>
                   </View>
                   <Text className="text-white text-2xl font-bold mb-1">
                     {user.username || "Set Username"}
                   </Text>
+                  {user.tagline && (
+                    <Text className="text-amber-400/80 text-sm italic mt-1">
+                      {user.tagline}
+                    </Text>
+                  )}
                   {user.email && (
-                    <Text className="text-white/60 text-sm">{user.email}</Text>
+                    <Text className="text-white/60 text-sm mt-1">{user.email}</Text>
                   )}
                   {user.bankerStatus !== "none" && (
                     <View className="mt-3">
@@ -242,6 +269,12 @@ export default function ProfileScreen() {
       <SendChipsModal
         visible={showSendModal}
         onClose={() => setShowSendModal(false)}
+      />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        visible={showEditModal}
+        onClose={() => setShowEditModal(false)}
       />
     </View>
   );
@@ -450,6 +483,172 @@ function SendChipsModal({ visible, onClose }: { visible: boolean; onClose: () =>
                     {user && amount && parseFloat(amount) > user.chipBalance && (
                       <View className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
                         <Text className="text-red-300 text-sm">Insufficient balance</Text>
+                      </View>
+                    )}
+                  </View>
+                </ScrollView>
+              </SafeAreaView>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+function EditProfileModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
+  const [username, setUsername] = useState(user?.username || "");
+  const [tagline, setTagline] = useState(user?.tagline || "");
+  const [avatarUri, setAvatarUri] = useState(user?.avatarUrl || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handlePickImage = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setAvatarUri(result.assets[0].uri);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  };
+
+  const handleSave = () => {
+    if (!username.trim()) {
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsSaving(true);
+
+    setTimeout(() => {
+      updateUser({
+        username: username.trim(),
+        tagline: tagline.trim() || undefined,
+        avatarUrl: avatarUri || undefined,
+      });
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setIsSaving(false);
+      onClose();
+    }, 500);
+  };
+
+  const remainingChars = 42 - tagline.length;
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 bg-black/80 justify-end">
+            <View className="bg-[#0a0f1e] rounded-t-3xl border-t-2 border-amber-500/20">
+              <SafeAreaView edges={["bottom"]}>
+                <View className="px-6 pt-6 pb-4 flex-row items-center justify-between border-b border-white/10">
+                  <Text className="text-white text-2xl font-bold">Edit Profile</Text>
+                  <Pressable onPress={onClose} className="bg-white/5 p-2 rounded-full active:opacity-80">
+                    <Ionicons name="close" size={24} color="white" />
+                  </Pressable>
+                </View>
+
+                <ScrollView
+                  className="px-6 py-6"
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                >
+                  <View className="space-y-5">
+                    {/* Avatar Section */}
+                    <View className="items-center">
+                      <Pressable onPress={handlePickImage} className="active:opacity-80">
+                        {avatarUri ? (
+                          <Image
+                            source={{ uri: avatarUri }}
+                            className="w-32 h-32 rounded-full border-4 border-amber-500/30"
+                          />
+                        ) : (
+                          <View className="bg-amber-500/20 w-32 h-32 rounded-full items-center justify-center border-4 border-amber-500/30">
+                            <Text className="text-amber-400 text-5xl font-bold">
+                              {username ? username.charAt(0).toUpperCase() : "?"}
+                            </Text>
+                          </View>
+                        )}
+                        <View className="absolute bottom-0 right-0 bg-amber-500 w-10 h-10 rounded-full items-center justify-center border-4 border-[#0a0f1e]">
+                          <Ionicons name="camera" size={18} color="white" />
+                        </View>
+                      </Pressable>
+                      <Text className="text-white/60 text-sm mt-3">Tap to change avatar</Text>
+                    </View>
+
+                    {/* Username Input */}
+                    <View>
+                      <Text className="text-white/70 text-sm mb-2 ml-1">Username</Text>
+                      <TextInput
+                        value={username}
+                        onChangeText={setUsername}
+                        placeholder="Enter username"
+                        placeholderTextColor="#ffffff40"
+                        autoCapitalize="none"
+                        maxLength={20}
+                        className="bg-white/10 text-white rounded-xl px-4 py-4 text-lg border border-white/10"
+                      />
+                    </View>
+
+                    {/* Tagline Input */}
+                    <View>
+                      <View className="flex-row items-center justify-between mb-2 ml-1">
+                        <Text className="text-white/70 text-sm">Tagline</Text>
+                        <Text className={`text-xs ${remainingChars < 10 ? "text-amber-400" : "text-white/40"}`}>
+                          {remainingChars} / 42
+                        </Text>
+                      </View>
+                      <TextInput
+                        value={tagline}
+                        onChangeText={(text) => {
+                          if (text.length <= 42) {
+                            setTagline(text);
+                          }
+                        }}
+                        placeholder="Add a tagline (optional)"
+                        placeholderTextColor="#ffffff40"
+                        maxLength={42}
+                        className="bg-white/10 text-white rounded-xl px-4 py-4 text-lg border border-white/10"
+                      />
+                      <Text className="text-white/50 text-xs mt-2 ml-1 italic">
+                        Example: &quot;win some lose some&quot;
+                      </Text>
+                    </View>
+
+                    {/* Save Button */}
+                    <Pressable
+                      onPress={handleSave}
+                      disabled={!username.trim() || isSaving}
+                      className={`bg-amber-500 rounded-xl py-4 mt-2 ${
+                        !username.trim() || isSaving ? "opacity-50" : "active:opacity-80"
+                      }`}
+                    >
+                      <Text className="text-white text-center text-lg font-semibold">
+                        {isSaving ? "Saving..." : "Save Changes"}
+                      </Text>
+                    </Pressable>
+
+                    {!username.trim() && (
+                      <View className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
+                        <Text className="text-red-300 text-sm">Username is required</Text>
                       </View>
                     )}
                   </View>

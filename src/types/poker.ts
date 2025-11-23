@@ -6,6 +6,7 @@ export interface User {
   email?: string;
   telegramId?: string;
   avatarUrl?: string;
+  tagline?: string; // Max 42 characters
   chipBalance: number;
   bankerStatus: "none" | "og" | "regular";
   bankerFeeRate: number; // 0.01 for OG, 0.042 for regular

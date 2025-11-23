@@ -62,6 +62,11 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
 
 ### Profile Tab
 - View and manage user profile
+- **Edit Profile Features**:
+  - Upload custom avatar from photo library
+  - Edit username (max 20 characters)
+  - Add custom tagline (max 42 characters, displayed below username)
+  - All users can edit profile regardless of login method
 - Display CHiP$ balance
 - Send CHiP$ to other users
 - View statistics:
@@ -70,6 +75,7 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
   - Profit/Loss tracking
 - Transaction history
 - Banker status and fee rate display
+- Logout functionality
 
 ### Lobby Tab
 - View all active poker tables
@@ -92,7 +98,11 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
   - Small/Big blinds (min 1 CHiP$)
   - Buy-in amount
   - Pot rake: 0-4.2%
-  - Scheduled start date/time
+  - **Date & Time Scheduling**:
+    - Interactive date picker (calendar)
+    - Interactive time picker (clock)
+    - Real-time countdown to table start
+    - Notification reminder toggle (5 mins before start)
 - Share table link via social media or direct message
 - Automatic table listing in Lobby
 
@@ -249,7 +259,8 @@ STRIPE_WEBHOOK_SECRET=whsec_...
   "@hashgraph/hedera-wallet-connect": "2.0.4",
   "@walletconnect/web3wallet": "1.16.1",
   "@walletconnect/qrcode-modal": "1.8.0",
-  "@stripe/stripe-react-native": "0.57.0"
+  "@react-native-community/datetimepicker": "8.4.1",
+  "expo-image-picker": "16.1.4"
 }
 ```
 
