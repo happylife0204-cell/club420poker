@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, ScrollView, TextInput, Share, KeyboardAvoidingView, Platform, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useAppStore } from "../state/appStore";
 import { useAuthStore } from "../state/authStore";
 import { PokerTable } from "../types/poker";
@@ -15,12 +16,47 @@ export default function HostTableScreen() {
   const [bigBlind, setBigBlind] = useState("20");
   const [buyIn, setBuyIn] = useState("1000");
   const [potRake, setPotRake] = useState("2");
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date(Date.now() + 30 * 60000)); // 30 minutes from now
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [enableNotifications, setEnableNotifications] = useState(true);
+  const [timeUntilStart, setTimeUntilStart] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [createdTable, setCreatedTable] = useState<PokerTable | null>(null);
 
   const user = useAuthStore((s) => s.user);
   const addTable = useAppStore((s) => s.addTable);
+
+  // Update countdown every second
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const target = selectedDate.getTime();
+      const difference = target - now;
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        if (days > 0) {
+          setTimeUntilStart(`${days}d ${hours}h ${minutes}m`);
+        } else if (hours > 0) {
+          setTimeUntilStart(`${hours}h ${minutes}m ${seconds}s`);
+        } else {
+          setTimeUntilStart(`${minutes}m ${seconds}s`);
+        }
+      } else {
+        setTimeUntilStart("Starting now!");
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [selectedDate]);
 
   const handleCreateTable = () => {
     if (!user || !tableName.trim()) return;
@@ -290,6 +326,147 @@ export default function HostTableScreen() {
                     Maximum: 4.2%
                   </Text>
                 </View>
+
+                {/* Scheduled Start Time */}
+                <View>
+                  <Text className="text-white text-lg font-semibold mb-3">Scheduled Start Time</Text>
+
+                  {/* Date and Time Selectors */}
+                  <View className="flex-row space-x-3 mb-3">
+                    {/* Date Picker */}
+                    <Pressable
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setShowDatePicker(true);
+                      }}
+                      className="flex-1 bg-white/10 border border-white/10 rounded-xl p-4 active:opacity-80"
+                    >
+                      <View className="flex-row items-center justify-between">
+                        <View>
+                          <Text className="text-white/60 text-xs mb-1">Date</Text>
+                          <Text className="text-white font-semibold">
+                            {selectedDate.toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </Text>
+                        </View>
+                        <Ionicons name="calendar" size={24} color="#f59e0b" />
+                      </View>
+                    </Pressable>
+
+                    {/* Time Picker */}
+                    <Pressable
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setShowTimePicker(true);
+                      }}
+                      className="flex-1 bg-white/10 border border-white/10 rounded-xl p-4 active:opacity-80"
+                    >
+                      <View className="flex-row items-center justify-between">
+                        <View>
+                          <Text className="text-white/60 text-xs mb-1">Time</Text>
+                          <Text className="text-white font-semibold">
+                            {selectedDate.toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </Text>
+                        </View>
+                        <Ionicons name="time" size={24} color="#f59e0b" />
+                      </View>
+                    </Pressable>
+                  </View>
+
+                  {/* Countdown Display */}
+                  <View className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/20 mb-3">
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center">
+                        <Ionicons name="hourglass-outline" size={20} color="#f59e0b" />
+                        <Text className="text-white/70 text-sm ml-2">Starts in</Text>
+                      </View>
+                      <Text className="text-amber-400 font-bold text-lg">
+                        {timeUntilStart}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Notification Toggle */}
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setEnableNotifications(!enableNotifications);
+                    }}
+                    className="bg-white/5 rounded-xl p-4 border border-white/10 active:opacity-80"
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center flex-1">
+                        <Ionicons
+                          name="notifications"
+                          size={22}
+                          color={enableNotifications ? "#f59e0b" : "#ffffff60"}
+                        />
+                        <View className="ml-3 flex-1">
+                          <Text className="text-white font-semibold mb-1">
+                            Reminder Notifications
+                          </Text>
+                          <Text className="text-white/60 text-xs">
+                            Get notified 5 minutes before table starts
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        className={`w-12 h-7 rounded-full p-1 ${
+                          enableNotifications ? "bg-amber-500" : "bg-white/20"
+                        }`}
+                      >
+                        <View
+                          className={`w-5 h-5 rounded-full bg-white ${
+                            enableNotifications ? "ml-auto" : ""
+                          }`}
+                        />
+                      </View>
+                    </View>
+                  </Pressable>
+                </View>
+
+                {/* Date Time Pickers (iOS) */}
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={selectedDate}
+                    mode="date"
+                    display="spinner"
+                    minimumDate={new Date()}
+                    onChange={(event, date) => {
+                      setShowDatePicker(Platform.OS === 'ios');
+                      if (date) {
+                        const newDate = new Date(date);
+                        newDate.setHours(selectedDate.getHours());
+                        newDate.setMinutes(selectedDate.getMinutes());
+                        setSelectedDate(newDate);
+                      }
+                    }}
+                  />
+                )}
+
+                {showTimePicker && (
+                  <DateTimePicker
+                    value={selectedDate}
+                    mode="time"
+                    display="spinner"
+                    onChange={(event, date) => {
+                      setShowTimePicker(Platform.OS === 'ios');
+                      if (date) {
+                        const newDate = new Date(selectedDate);
+                        newDate.setHours(date.getHours());
+                        newDate.setMinutes(date.getMinutes());
+                        setSelectedDate(newDate);
+                      }
+                    }}
+                  />
+                )}
 
                 {/* Info Box */}
                 <View className="bg-blue-500/10 rounded-xl p-4 border border-blue-500/20">
