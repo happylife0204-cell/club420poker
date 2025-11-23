@@ -12,6 +12,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import LobbyScreen from "../screens/LobbyScreen";
 import HostTableScreen from "../screens/HostTableScreen";
 import BankerScreen from "../screens/BankerScreen";
+import PokerGameScreen from "../screens/PokerGameScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -106,7 +107,17 @@ export default function RootNavigator() {
           {(props) => <LandingScreen {...props} onLoginSuccess={() => {}} />}
         </Stack.Screen>
       ) : (
-        <Stack.Screen name="Main" component={MainTabs} />
+        <>
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen
+            name="PokerGame"
+            component={PokerGameScreen}
+            options={{
+              presentation: "fullScreenModal",
+              animation: "slide_from_bottom",
+            }}
+          />
+        </>
       )}
     </Stack.Navigator>
   );

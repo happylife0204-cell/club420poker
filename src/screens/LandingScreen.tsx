@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
+import { hashPackWallet, HASHPACK_CONFIG } from "../services/hashPackWallet";
 
 interface LandingScreenProps {
   onLoginSuccess: () => void;
@@ -360,21 +361,52 @@ function EmailLogin({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =
 
 function C420Login({ onBack, onSuccess }: { onBack: () => void; onSuccess: () => void }) {
   const [walletConnected, setWalletConnected] = useState(false);
+  const [accountId, setAccountId] = useState("");
   const [c420Balance, setC420Balance] = useState(0);
   const [transferAmount, setTransferAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const destinationAddress = "0.0.10088196-oxyln";
+  const [error, setError] = useState("");
+  const destinationAddress = HASHPACK_CONFIG.RECEIVER_ACCOUNT_ID;
 
-  const handleConnectWallet = () => {
+  const handleConnectWallet = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsProcessing(true);
+    setError("");
 
-    // Simulate HashPack wallet connection
-    setTimeout(() => {
-      setWalletConnected(true);
-      setC420Balance(1000); // Mock balance
+    try {
+      // Attempt to connect to HashPack
+      const walletData = await hashPackWallet.connectWallet();
+
+      if (walletData.isConnected) {
+        setWalletConnected(true);
+        setAccountId(walletData.accountId);
+        setC420Balance(walletData.c420Balance);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        setError("Failed to connect wallet. Please try again.");
+      }
+    } catch (err: any) {
+      console.error("Wallet connection error:", err);
+      setError(err.message || "Failed to connect HashPack wallet");
+      // For testing, show mock connection
+      Alert.alert(
+        "HashPack Not Configured",
+        "Real HashPack integration requires mobile wallet setup. For testing, mock connection enabled.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Use Mock",
+            onPress: () => {
+              setWalletConnected(true);
+              setAccountId("0.0.123456");
+              setC420Balance(1000);
+            },
+          },
+        ]
+      );
+    } finally {
       setIsProcessing(false);
-    }, 1500);
+    }
   };
 
   const handleCopyAddress = async () => {
@@ -382,22 +414,64 @@ function C420Login({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =>
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
-  const handleConfirmTransfer = () => {
+  const handleConfirmTransfer = async () => {
     if (!transferAmount.trim() || parseFloat(transferAmount) <= 0) {
+      return;
+    }
+
+    const amount = parseFloat(transferAmount);
+
+    if (amount > c420Balance) {
+      Alert.alert("Insufficient Balance", "You don't have enough C420 tokens.");
       return;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsProcessing(true);
+    setError("");
 
-    // Simulate C420 transfer
-    setTimeout(() => {
-      const amount = parseFloat(transferAmount);
+    try {
+      // Send C420 tokens via HashPack
+      const txId = await hashPackWallet.sendC420Tokens(amount);
+
+      // Calculate CHiP$ received
+      const chipsReceived = hashPackWallet.calculateChips(amount);
+
+      // Login user with C420
       const { useAuthStore } = require("../state/authStore");
-      useAuthStore.getState().loginWithC420(`wallet_${Date.now()}`, amount);
+      useAuthStore.getState().loginWithC420(accountId, amount);
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      Alert.alert(
+        "Transfer Complete!",
+        `You sent ${amount} C420 and received ${chipsReceived.toLocaleString()} CHiP$\n\nTransaction: ${txId}`,
+        [{ text: "OK", onPress: onSuccess }]
+      );
+    } catch (err: any) {
+      console.error("Transfer error:", err);
+      setError(err.message || "Transfer failed");
+
+      // For testing purposes
+      Alert.alert(
+        "Transaction Not Sent",
+        "Real HashPack transactions require proper setup. Use mock for testing?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Mock Transfer",
+            onPress: () => {
+              const { useAuthStore } = require("../state/authStore");
+              useAuthStore.getState().loginWithC420(accountId, amount);
+              setIsProcessing(false);
+              onSuccess();
+            },
+          },
+        ]
+      );
+    } finally {
       setIsProcessing(false);
-      onSuccess();
-    }, 2000);
+    }
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, Modal, Image } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,6 +7,7 @@ import * as Haptics from "expo-haptics";
 import { useAppStore } from "../state/appStore";
 import { useAuthStore } from "../state/authStore";
 import { ChipBundle } from "../types/poker";
+import { useStripePayment } from "../services/stripeService";
 
 export default function MarketplaceScreen() {
   const chipBundles = useAppStore((s) => s.chipBundles);
@@ -177,17 +178,34 @@ function PurchaseModal({
   const purchaseBundle = useAppStore((s) => s.purchaseBundle);
   const addTransaction = useAppStore((s) => s.addTransaction);
   const user = useAuthStore((s) => s.user);
+  const { processPayment } = useStripePayment();
 
-  const handleCardPurchase = () => {
+  const handleCardPurchase = async () => {
+    if (!user) return;
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsProcessing(true);
 
-    // Simulate card payment processing
-    setTimeout(() => {
-      addChips(bundle.chipAmount);
-      purchaseBundle(bundle.id);
+    try {
+      // Convert GBP to pence for Stripe
+      const amountInPence = Math.round(bundle.priceGBP * 100);
 
-      if (user) {
+      // Process payment via Stripe
+      const success = await processPayment(
+        bundle.id,
+        bundle.sellerId,
+        amountInPence,
+        user.id
+      );
+
+      if (success) {
+        // Add chips to user account
+        addChips(bundle.chipAmount);
+
+        // Mark bundle as purchased
+        purchaseBundle(bundle.id);
+
+        // Record transaction
         addTransaction({
           id: `txn_${Date.now()}`,
           userId: user.id,
@@ -198,12 +216,23 @@ function PurchaseModal({
           timestamp: new Date().toISOString(),
           description: `Purchased ${bundle.chipAmount.toLocaleString()} CHiP$ for £${bundle.priceGBP}`,
         });
-      }
 
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        Alert.alert(
+          "Purchase Successful!",
+          `You received ${bundle.chipAmount.toLocaleString()} CHiP$ in your account.`,
+          [{ text: "OK", onPress: onClose }]
+        );
+      } else {
+        Alert.alert("Payment Failed", "Your payment could not be processed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Purchase error:", error);
+      Alert.alert("Error", "An unexpected error occurred during purchase");
+    } finally {
       setIsProcessing(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      onClose();
-    }, 2000);
+    }
   };
 
   const handleOTCRequest = () => {

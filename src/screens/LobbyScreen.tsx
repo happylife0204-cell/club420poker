@@ -21,8 +21,12 @@ export default function LobbyScreen() {
     if (!user) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Navigate to game screen (to be implemented)
-    // For now, just show the table details
+
+    // Navigate to poker game screen
+    navigation.navigate("PokerGame", {
+      tableId: table.id,
+      buyIn: table.buyIn,
+    });
   };
 
   return (

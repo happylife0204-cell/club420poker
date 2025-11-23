@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,6 +7,7 @@ import * as Haptics from "expo-haptics";
 import { useAuthStore } from "../state/authStore";
 import { useAppStore } from "../state/appStore";
 import { ChipBundle } from "../types/poker";
+import { stripeService } from "../services/stripeService";
 
 export default function BankerScreen() {
   const user = useAuthStore((s) => s.user);
@@ -20,8 +21,76 @@ export default function BankerScreen() {
   const [acceptsCard, setAcceptsCard] = useState(true);
   const [acceptsOTC, setAcceptsOTC] = useState(true);
   const [telegramHandle, setTelegramHandle] = useState("");
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<{
+    chargesEnabled: boolean;
+    detailsSubmitted: boolean;
+    payoutsEnabled: boolean;
+  } | null>(null);
 
   const userBundles = chipBundles.filter((b) => b.sellerId === user?.id);
+
+  // Check Stripe account status on mount
+  useEffect(() => {
+    if (user?.stripeConnectedAccountId) {
+      checkStripeAccountStatus();
+    }
+  }, [user?.stripeConnectedAccountId]);
+
+  const checkStripeAccountStatus = async () => {
+    if (!user?.stripeConnectedAccountId) return;
+
+    const status = await stripeService.getConnectAccountStatus(user.stripeConnectedAccountId);
+    if (status) {
+      setStripeAccountStatus(status);
+    }
+  };
+
+  const handleConnectStripe = async () => {
+    if (!user?.email) {
+      Alert.alert("Email Required", "Please add an email to your account to connect Stripe");
+      return;
+    }
+
+    setIsConnectingStripe(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    try {
+      const result = await stripeService.createConnectAccount(user.id, user.email);
+
+      if (!result) {
+        Alert.alert(
+          "Stripe Not Configured",
+          "Stripe backend is not set up yet. This feature will be available once the backend is deployed. For now, you can create bundles and test the UI flow.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      // Save account ID to user
+      const updateUser = useAuthStore.getState().updateUser;
+      updateUser({ stripeConnectedAccountId: result.accountId });
+
+      // Open Stripe onboarding in browser
+      await Linking.openURL(result.onboardingUrl);
+
+      Alert.alert(
+        "Complete Stripe Setup",
+        "Please complete the Stripe onboarding in your browser. Once finished, return to the app.",
+        [
+          {
+            text: "Check Status",
+            onPress: checkStripeAccountStatus,
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Stripe connection error:", error);
+      Alert.alert("Error", "Failed to connect Stripe account");
+    } finally {
+      setIsConnectingStripe(false);
+    }
+  };
 
   const handleCreateBundle = () => {
     if (!user || !chipAmount || !priceGBP) return;
@@ -247,7 +316,7 @@ export default function BankerScreen() {
                 </View>
 
                 {/* Stripe Integration */}
-                {!user.stripeConnectedAccountId && (
+                {!user.stripeConnectedAccountId ? (
                   <View className="bg-blue-500/10 rounded-2xl p-5 border border-blue-500/20 mb-6">
                     <View className="flex-row items-start mb-4">
                       <Ionicons name="card" size={24} color="#3b82f6" />
@@ -260,9 +329,63 @@ export default function BankerScreen() {
                         </Text>
                       </View>
                     </View>
-                    <Pressable className="bg-blue-500 rounded-xl py-3 active:opacity-80">
+                    <Pressable
+                      onPress={handleConnectStripe}
+                      disabled={isConnectingStripe}
+                      className={`bg-blue-500 rounded-xl py-3 ${isConnectingStripe ? "opacity-50" : "active:opacity-80"}`}
+                    >
                       <Text className="text-white text-center font-semibold">
-                        Connect Stripe Account
+                        {isConnectingStripe ? "Connecting..." : "Connect Stripe Account"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View className="bg-emerald-500/10 rounded-2xl p-5 border border-emerald-500/20 mb-6">
+                    <View className="flex-row items-start mb-4">
+                      <Ionicons name="checkmark-circle" size={24} color="#10b981" />
+                      <View className="flex-1 ml-3">
+                        <Text className="text-white font-bold text-lg mb-1">
+                          Stripe Connected
+                        </Text>
+                        <Text className="text-emerald-300 text-sm">
+                          Your Stripe account is connected and ready to receive payments
+                        </Text>
+                      </View>
+                    </View>
+                    {stripeAccountStatus && (
+                      <View className="bg-[#0a0f1e]/50 rounded-xl p-3 space-y-2">
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-white/70 text-sm">Charges Enabled</Text>
+                          <Ionicons
+                            name={stripeAccountStatus.chargesEnabled ? "checkmark-circle" : "close-circle"}
+                            size={18}
+                            color={stripeAccountStatus.chargesEnabled ? "#10b981" : "#ef4444"}
+                          />
+                        </View>
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-white/70 text-sm">Details Submitted</Text>
+                          <Ionicons
+                            name={stripeAccountStatus.detailsSubmitted ? "checkmark-circle" : "close-circle"}
+                            size={18}
+                            color={stripeAccountStatus.detailsSubmitted ? "#10b981" : "#ef4444"}
+                          />
+                        </View>
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-white/70 text-sm">Payouts Enabled</Text>
+                          <Ionicons
+                            name={stripeAccountStatus.payoutsEnabled ? "checkmark-circle" : "close-circle"}
+                            size={18}
+                            color={stripeAccountStatus.payoutsEnabled ? "#10b981" : "#ef4444"}
+                          />
+                        </View>
+                      </View>
+                    )}
+                    <Pressable
+                      onPress={checkStripeAccountStatus}
+                      className="bg-emerald-500/20 rounded-xl py-2 mt-3 active:opacity-80"
+                    >
+                      <Text className="text-emerald-400 text-center font-semibold text-sm">
+                        Refresh Status
                       </Text>
                     </Pressable>
                   </View>
