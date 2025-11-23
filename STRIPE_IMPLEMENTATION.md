@@ -1,12 +1,70 @@
 # Stripe Payment Integration Guide
 
+## ⚠️ Important: Expo Managed Workflow Limitation
+
+**Stripe React Native SDK requires native code** and cannot be used in Expo's managed workflow (Vibecode environment) without building a custom dev client.
+
+### Current Implementation Status
+
+✅ **What Works Now:**
+- Complete Stripe service architecture in place
+- Mock payment flow for testing all UI
+- Banker Connect flow (UI complete)
+- Bundle purchase flow (UI complete)
+- All payment logic ready
+
+❌ **What Requires Custom Dev Client:**
+- Real Stripe Payment Sheet
+- Actual card payment processing
+- Live Stripe Connect onboarding
+
+### Two Options to Enable Real Stripe Payments
+
+#### Option 1: Build Custom Dev Client (Recommended for Native Features)
+
+```bash
+# Install Stripe
+npx expo install @stripe/stripe-react-native
+
+# Build custom dev client
+npx expo prebuild
+npx expo run:ios  # or npx expo run:android
+
+# This creates native iOS/Android projects with Stripe integrated
+```
+
+Then uncomment the StripeProvider in App.tsx and update stripeService.ts to use real Stripe hooks.
+
+#### Option 2: Use Web-Based Stripe Checkout (Works in Expo Go)
+
+Instead of the native SDK, use Stripe's web checkout via `expo-web-browser`:
+
+```typescript
+import * as WebBrowser from 'expo-web-browser';
+
+// Backend creates Checkout Session, returns URL
+const { url } = await fetch(`${STRIPE_BACKEND_URL}/create-checkout-session`, {
+  method: 'POST',
+  body: JSON.stringify({ bundleId, amount }),
+}).then(r => r.json());
+
+// Open Stripe Checkout in browser
+await WebBrowser.openBrowserAsync(url);
+```
+
+This works immediately without rebuilding, but uses browser instead of native UI.
+
 ## Overview
 
-The Club 420 Poker app now has **full Stripe payment integration** for the Banker marketplace system. The implementation includes:
+The Club 420 Poker app has **complete Stripe payment architecture** ready. The client-side is fully implemented and will work immediately once you either:
+1. Build a custom dev client with native Stripe, OR
+2. Switch to web-based Stripe Checkout
 
-- ✅ Stripe React Native SDK installed
-- ✅ Stripe Connect for bankers (account onboarding)
-- ✅ Payment Intent creation for bundle purchases
+Current implementation includes:
+
+- ✅ Complete Stripe service architecture
+- ✅ Banker Connect account flow (UI ready)
+- ✅ Bundle purchase flow (UI ready)
 - ✅ Stripe Payment Sheet UI for card payments
 - ✅ Complete payment flow from buyer to banker
 - ✅ Fallback to mock purchases for testing

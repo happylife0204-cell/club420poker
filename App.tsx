@@ -2,7 +2,6 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StripeProvider } from "@stripe/stripe-react-native";
 import RootNavigator from "./src/navigation/RootNavigator";
 
 /*
@@ -26,24 +25,14 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 
 */
 
-// Stripe key - if not configured, we'll use a placeholder to prevent crash
-// The app will show "Stripe Not Configured" alerts when attempting payments
-const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder";
-
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StripeProvider
-          publishableKey={STRIPE_PUBLISHABLE_KEY}
-          merchantIdentifier="merchant.com.club420poker"
-          urlScheme="club420poker"
-        >
-          <NavigationContainer>
-            <RootNavigator />
-            <StatusBar style="light" />
-          </NavigationContainer>
-        </StripeProvider>
+        <NavigationContainer>
+          <RootNavigator />
+          <StatusBar style="light" />
+        </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

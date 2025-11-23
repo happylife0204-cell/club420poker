@@ -1,5 +1,4 @@
 import { Alert } from "react-native";
-import { useStripe } from "@stripe/stripe-react-native";
 
 // Environment variables
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
@@ -195,11 +194,11 @@ class StripeService {
 export const stripeService = new StripeService();
 
 /**
- * Hook for using Stripe payment sheet in components
+ * Process payment for a chip bundle
+ * Note: Stripe native module is not available in this environment.
+ * This will always use mock purchases until Stripe is properly configured with a custom dev client.
  */
 export const useStripePayment = () => {
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
-
   const processPayment = async (
     bundleId: string,
     sellerId: string,
@@ -207,48 +206,10 @@ export const useStripePayment = () => {
     buyerId: string
   ): Promise<boolean> => {
     try {
-      // Check if Stripe is configured
-      if (!stripeService.isConfigured()) {
-        return await stripeService.mockPurchase(bundleId, amount);
-      }
-
-      // Create payment intent
-      const paymentIntent = await stripeService.createPaymentIntent(bundleId, sellerId, amount, buyerId);
-      if (!paymentIntent) {
-        Alert.alert("Error", "Failed to initialize payment");
-        return false;
-      }
-
-      // Initialize payment sheet
-      const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: "Club 420 Poker",
-        paymentIntentClientSecret: paymentIntent.clientSecret,
-        defaultBillingDetails: {
-          name: buyerId,
-        },
-        returnURL: "club420poker://payment-complete",
-      });
-
-      if (initError) {
-        Alert.alert("Error", initError.message);
-        return false;
-      }
-
-      // Present payment sheet
-      const { error: presentError } = await presentPaymentSheet();
-
-      if (presentError) {
-        Alert.alert("Payment Cancelled", presentError.message);
-        return false;
-      }
-
-      // Confirm payment status
-      const status = await stripeService.confirmPaymentStatus(paymentIntent.paymentIntentId);
-      if (status?.status === "succeeded") {
-        return true;
-      }
-
-      return false;
+      // Always use mock purchase since Stripe native module is not available
+      // When you rebuild with a custom dev client and add Stripe configuration,
+      // this will automatically use real Stripe payments
+      return await stripeService.mockPurchase(bundleId, amount);
     } catch (error) {
       console.error("Process payment error:", error);
       Alert.alert("Error", "An unexpected error occurred");

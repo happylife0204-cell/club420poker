@@ -15,8 +15,23 @@ A fully functional poker application built with React Native and Expo, featuring
 
 ### ⏳ Backend Required for Full Functionality
 - **Socket.IO Poker Server** - Game state management and dealer logic
+- **Stripe Backend** - Payment Intent creation and webhook handling (see note below)
 - **HashPack Mobile Setup** - WalletConnect configuration and deep linking
-- **Stripe Backend** - Payment Intent creation and webhook handling
+
+### ⚠️ Important: Stripe Payment Note
+
+**Stripe requires a custom dev client** to work with Expo. The Stripe React Native SDK has been removed to prevent crashes in the managed workflow.
+
+**Current Status:**
+- ✅ All Stripe UI flows are complete and testable
+- ✅ Mock payment system works for testing
+- ✅ Full service architecture ready
+
+**To enable real Stripe:**
+1. **Option A (Native):** Build custom dev client with `npx expo prebuild` and reinstall Stripe
+2. **Option B (Web):** Use Stripe Checkout (works in Expo Go, opens browser)
+
+See `STRIPE_IMPLEMENTATION.md` for detailed instructions on both approaches.
 
 See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEMENTATION_SUMMARY.md` for detailed technical documentation.
 
