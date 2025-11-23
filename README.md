@@ -160,6 +160,27 @@ Two different views based on banker status:
 - Transaction history
 - Table join/leave management
 
+## Poker Gameplay
+
+### Current Implementation
+- **Demo Mode**: Automatic 3-second fallback to mock game state for UI testing
+- **Basic UI**: Simplified interface showing core mechanics (cards, chips, betting actions)
+- **Landscape Mode Prompt**: Players are prompted to rotate device for optimal experience
+- **Action Buttons**: Fold, Check/Call, Raise, All In
+- **Real-time Updates**: Ready for Socket.IO integration
+
+### Planned Enhancements (With Real Backend)
+When connected to Socket.IO server, the poker UI will be enhanced with:
+- **Traditional Table Layout**: Player avatars positioned around oval/circular table
+- **Live Chat**: Real-time messaging between players at the table
+- **Player Animations**: Card dealing, chip movement, player actions
+- **Dealer Button Rotation**: Visual indicator of dealer position
+- **Enhanced Visuals**: Polished card animations and chip stack displays
+- **Spectator Mode**: Watch ongoing games with full visibility
+- **Hand History**: Review past hands and outcomes
+
+The current demo showcases the functional foundation that will be enhanced with these traditional poker site features once the backend is connected.
+
 ## Important Notes
 
 ### RMT Warning
@@ -260,7 +281,8 @@ STRIPE_WEBHOOK_SECRET=whsec_...
   "@walletconnect/web3wallet": "1.16.1",
   "@walletconnect/qrcode-modal": "1.8.0",
   "@react-native-community/datetimepicker": "8.4.1",
-  "expo-image-picker": "16.1.4"
+  "expo-image-picker": "16.1.4",
+  "expo-screen-orientation": "9.0.7"
 }
 ```
 

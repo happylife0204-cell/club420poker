@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, Pressable, ScrollView, Image, Alert } from "react-native";
+import { View, Text, Pressable, ScrollView, Image, Alert, Modal, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { pokerSocket } from "../services/pokerSocket";
 import { useAuthStore } from "../state/authStore";
@@ -28,6 +29,46 @@ export default function PokerGameScreen() {
   const [raiseAmount, setRaiseAmount] = useState(0);
   const [connected, setConnected] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [showLandscapePrompt, setShowLandscapePrompt] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  // Check orientation on mount and when dimensions change
+  useEffect(() => {
+    const checkOrientation = () => {
+      const { width, height } = Dimensions.get("window");
+      const landscape = width > height;
+      setIsLandscape(landscape);
+
+      // Show prompt only once when first entering if not in landscape
+      if (!landscape && !showLandscapePrompt && gameState) {
+        setShowLandscapePrompt(true);
+      }
+    };
+
+    checkOrientation();
+    const subscription = Dimensions.addEventListener("change", checkOrientation);
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [gameState]);
+
+  const handleRotateDevice = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowLandscapePrompt(false);
+
+    try {
+      // Unlock orientation and suggest landscape
+      await ScreenOrientation.unlockAsync();
+    } catch (error) {
+      // Orientation API might not be available, user will rotate manually
+    }
+  };
+
+  const handleDismissPrompt = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowLandscapePrompt(false);
+  };
 
   // Create mock game state for demo
   const createMockGameState = useCallback((): GameState => {
@@ -377,6 +418,56 @@ export default function PokerGameScreen() {
           )}
         </SafeAreaView>
       </LinearGradient>
+
+      {/* Landscape Mode Prompt */}
+      <Modal visible={showLandscapePrompt} animationType="fade" transparent>
+        <View className="flex-1 bg-black/90 items-center justify-center px-6">
+          <View className="bg-[#0a0f1e] rounded-3xl p-8 border-2 border-amber-500/30 max-w-md">
+            <View className="items-center mb-6">
+              <View className="bg-amber-500/20 w-20 h-20 rounded-full items-center justify-center mb-4">
+                <Ionicons name="phone-landscape-outline" size={40} color="#f59e0b" />
+              </View>
+              <Text className="text-white text-2xl font-bold text-center mb-2">
+                Rotate Device
+              </Text>
+              <Text className="text-white/70 text-center">
+                For the best poker experience, please rotate your device to landscape mode
+              </Text>
+            </View>
+
+            <View className="items-center mb-6">
+              <View className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <Ionicons name="phone-portrait" size={60} color="#ffffff40" />
+                <View className="absolute top-1/2 left-1/2 -ml-6 -mt-6">
+                  <Ionicons name="arrow-forward" size={24} color="#f59e0b" />
+                </View>
+              </View>
+              <Ionicons name="arrow-down" size={24} color="#f59e0b" className="my-2" />
+              <View className="bg-white/5 rounded-2xl p-4 border border-amber-500/30">
+                <Ionicons name="phone-landscape" size={60} color="#f59e0b" />
+              </View>
+            </View>
+
+            <Pressable
+              onPress={handleRotateDevice}
+              className="bg-amber-500 rounded-xl py-4 mb-3 active:opacity-80"
+            >
+              <Text className="text-white text-center text-lg font-semibold">
+                Got it!
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleDismissPrompt}
+              className="bg-white/5 rounded-xl py-3 active:opacity-80"
+            >
+              <Text className="text-white/60 text-center font-semibold">
+                Continue in Portrait
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
