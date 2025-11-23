@@ -25,7 +25,7 @@ export default function LandingScreen({ onLoginSuccess }: LandingScreenProps) {
 
   return (
     <LinearGradient
-      colors={["#0a0f1e", "#1a2332", "#0a0f1e"]}
+      colors={["#000000", "#0a0f1e", "#000000"]}
       style={{ flex: 1 }}
     >
       <SafeAreaView style={{ flex: 1 }}>
@@ -57,13 +57,14 @@ function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegr
   return (
     <View className="flex-1 justify-center px-6">
       {/* Logo */}
-      <View className="items-center mb-12">
-        <Image
-          source={require("../../assets/image-1763857797.png")}
-          style={{ width: 280, height: 140 }}
-          resizeMode="contain"
-        />
-        <Text className="text-amber-400 text-xl font-semibold mt-4">Poker</Text>
+      <View className="items-center mb-16">
+        <View className="bg-black px-8 py-6 rounded-3xl">
+          <Image
+            source={require("../../assets/image-1763857797.png")}
+            style={{ width: 320, height: 160 }}
+            resizeMode="contain"
+          />
+        </View>
       </View>
 
       {/* Login Options */}

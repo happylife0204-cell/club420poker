@@ -87,13 +87,13 @@ export default function HostTableScreen() {
 
   if (createdTable) {
     return (
-      <View className="flex-1 bg-[#0a0f1e]">
-        <LinearGradient colors={["#0a0f1e", "#1a2332"]} style={{ flex: 1 }}>
+      <View className="flex-1 bg-black">
+        <LinearGradient colors={["#000000", "#0a0f1e", "#000000"]} style={{ flex: 1 }}>
           <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
             <View className="flex-1 items-center justify-center px-6">
               {/* Success Icon */}
-              <View className="bg-emerald-500/20 p-8 rounded-full mb-6 border-4 border-emerald-500/30">
-                <Ionicons name="checkmark" size={80} color="#10b981" />
+              <View className="bg-amber-500/20 p-8 rounded-full mb-6 border-4 border-amber-500/30">
+                <Ionicons name="checkmark" size={80} color="#f59e0b" />
               </View>
 
               <Text className="text-white text-3xl font-bold mb-2 text-center">
@@ -161,8 +161,8 @@ export default function HostTableScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#0a0f1e]">
-      <LinearGradient colors={["#0a0f1e", "#1a2332"]} style={{ flex: 1 }}>
+    <View className="flex-1 bg-black">
+      <LinearGradient colors={["#000000", "#0a0f1e", "#000000"]} style={{ flex: 1 }}>
         <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -172,11 +172,13 @@ export default function HostTableScreen() {
               {/* Header with Logo */}
               <View className="px-6 pt-4 pb-6 border-b border-white/10">
                 <View className="items-center mb-4">
-                  <Image
-                    source={require("../../assets/image-1763857797.png")}
-                    style={{ width: 180, height: 90 }}
-                    resizeMode="contain"
-                  />
+                  <View className="bg-black px-6 py-4 rounded-2xl">
+                    <Image
+                      source={require("../../assets/image-1763857797.png")}
+                      style={{ width: 240, height: 120 }}
+                      resizeMode="contain"
+                    />
+                  </View>
                 </View>
                 <Text className="text-white text-2xl font-bold text-center">Host a Table</Text>
               </View>

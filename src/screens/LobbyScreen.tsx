@@ -26,17 +26,19 @@ export default function LobbyScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#0a0f1e]">
-      <LinearGradient colors={["#0a0f1e", "#1a2332"]} style={{ flex: 1 }}>
+    <View className="flex-1 bg-black">
+      <LinearGradient colors={["#000000", "#0a0f1e", "#000000"]} style={{ flex: 1 }}>
         <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
           {/* Header with Logo */}
           <View className="px-6 pt-4 pb-6 border-b border-white/10">
             <View className="items-center mb-4">
-              <Image
-                source={require("../../assets/image-1763857797.png")}
-                style={{ width: 180, height: 90 }}
-                resizeMode="contain"
-              />
+              <View className="bg-black px-6 py-4 rounded-2xl">
+                <Image
+                  source={require("../../assets/image-1763857797.png")}
+                  style={{ width: 240, height: 120 }}
+                  resizeMode="contain"
+                />
+              </View>
             </View>
             <View className="flex-row items-center justify-between">
               <Text className="text-white text-2xl font-bold">Lobby</Text>

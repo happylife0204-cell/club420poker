@@ -72,8 +72,8 @@ export default function BankerScreen() {
   // Non-banker view
   if (!user || user.bankerStatus === "none") {
     return (
-      <View className="flex-1 bg-[#0a0f1e]">
-        <LinearGradient colors={["#0a0f1e", "#1a2332"]} style={{ flex: 1 }}>
+      <View className="flex-1 bg-black">
+        <LinearGradient colors={["#000000", "#0a0f1e", "#000000"]} style={{ flex: 1 }}>
           <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
             <View className="flex-1 items-center justify-center px-6">
               {/* Icon */}
@@ -182,8 +182,8 @@ export default function BankerScreen() {
 
   // Banker view
   return (
-    <View className="flex-1 bg-[#0a0f1e]">
-      <LinearGradient colors={["#0a0f1e", "#1a2332"]} style={{ flex: 1 }}>
+    <View className="flex-1 bg-black">
+      <LinearGradient colors={["#000000", "#0a0f1e", "#000000"]} style={{ flex: 1 }}>
         <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
