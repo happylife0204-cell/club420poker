@@ -39,6 +39,12 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
 
 ### Authentication System
 - **Landing Page Required**: All users must login via the landing page when app starts
+- **Cinematic Entrance Animation**:
+  - Club 420 logo emerges from darkness with dramatic zoom effect
+  - Logo scales from 3x to 1.5x to final size over 1.8 seconds
+  - Login buttons fade in smoothly after logo settles (staggered delay)
+  - Footer text fades in last for polished entrance
+  - Built with react-native-reanimated for smooth 60fps animations
 - **Terms of Service**: Users must read and accept Terms of Service before account creation
   - Interactive scroll-to-end requirement
   - Accept button only activates after scrolling to bottom

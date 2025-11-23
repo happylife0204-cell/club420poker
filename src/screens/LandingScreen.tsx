@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Image, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  withDelay,
+  Easing
+} from "react-native-reanimated";
 import { hashPackWallet, HASHPACK_CONFIG } from "../services/hashPackWallet";
 
 interface LandingScreenProps {
@@ -55,10 +63,61 @@ export default function LandingScreen({ onLoginSuccess }: LandingScreenProps) {
 }
 
 function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegram" | "email" | "c420") => void }) {
+  // Animation values
+  const logoScale = useSharedValue(3);
+  const logoOpacity = useSharedValue(1);
+  const logoTranslateY = useSharedValue(0);
+  const buttonsOpacity = useSharedValue(0);
+  const footerOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    // Logo animation sequence: zoom in from darkness, then settle
+    logoScale.value = withSequence(
+      withTiming(1.5, { duration: 1200, easing: Easing.out(Easing.quad) }),
+      withTiming(1, { duration: 600, easing: Easing.inOut(Easing.quad) })
+    );
+
+    logoTranslateY.value = withSequence(
+      withTiming(0, { duration: 1200 }),
+      withTiming(0, { duration: 600 })
+    );
+
+    // Fade in buttons after logo settles
+    buttonsOpacity.value = withDelay(
+      1400,
+      withTiming(1, { duration: 800, easing: Easing.out(Easing.quad) })
+    );
+
+    // Fade in footer last
+    footerOpacity.value = withDelay(
+      1800,
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) })
+    );
+  }, []);
+
+  const logoAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: logoScale.value },
+      { translateY: logoTranslateY.value }
+    ],
+    opacity: logoOpacity.value,
+  }));
+
+  const buttonsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: buttonsOpacity.value,
+    transform: [
+      { translateY: (1 - buttonsOpacity.value) * 20 }
+    ]
+  }));
+
+  const footerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: footerOpacity.value,
+  }));
+
   return (
     <View className="flex-1 justify-center px-6">
-      {/* Logo */}
-      <View className="items-center mb-16">
+      {/* Animated Logo */}
+      <Animated.View style={[{ alignItems: "center", marginBottom: 64 }, logoAnimatedStyle]}>
         <View className="bg-black px-8 py-6 rounded-3xl">
           <Image
             source={require("../../assets/image-1763857797.png")}
@@ -66,10 +125,10 @@ function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegr
             resizeMode="contain"
           />
         </View>
-      </View>
+      </Animated.View>
 
-      {/* Login Options */}
-      <View className="space-y-4">
+      {/* Animated Login Options */}
+      <Animated.View style={[{ gap: 16 }, buttonsAnimatedStyle]}>
         {/* Telegram Login */}
         <Pressable
           onPress={() => onMethodSelect("telegram")}
@@ -103,10 +162,7 @@ function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegr
         {/* C420 Token Login */}
         <Pressable
           onPress={() => onMethodSelect("c420")}
-          className="bg-gradient-to-r rounded-2xl p-[2px] active:opacity-80"
-          style={{
-            backgroundColor: "transparent",
-          }}
+          className="active:opacity-80"
         >
           <LinearGradient
             colors={["#fbbf24", "#f59e0b", "#d97706"]}
@@ -129,14 +185,14 @@ function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegr
             </View>
           </LinearGradient>
         </Pressable>
-      </View>
+      </Animated.View>
 
-      {/* Footer */}
-      <View className="mt-12">
+      {/* Animated Footer */}
+      <Animated.View style={[{ marginTop: 48 }, footerAnimatedStyle]}>
         <Text className="text-white/40 text-center text-sm">
           By continuing, you agree to our Terms of Service
         </Text>
-      </View>
+      </Animated.View>
     </View>
   );
 }
