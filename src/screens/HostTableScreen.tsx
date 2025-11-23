@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, Share, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Share, KeyboardAvoidingView, Platform, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -117,7 +117,7 @@ export default function HostTableScreen() {
                   </View>
                   <View className="flex-row justify-between">
                     <Text className="text-white/70">Buy-in</Text>
-                    <Text className="text-emerald-400 font-semibold">
+                    <Text className="text-amber-400 font-semibold">
                       {createdTable.buyIn.toLocaleString()} CHiP$
                     </Text>
                   </View>
@@ -134,7 +134,7 @@ export default function HostTableScreen() {
               <View className="w-full space-y-3">
                 <Pressable
                   onPress={handleShareTable}
-                  className="bg-emerald-500 rounded-xl py-4 active:opacity-80"
+                  className="bg-amber-500 rounded-xl py-4 active:opacity-80"
                 >
                   <View className="flex-row items-center justify-center">
                     <Ionicons name="share-social" size={20} color="white" />
@@ -169,12 +169,16 @@ export default function HostTableScreen() {
             style={{ flex: 1 }}
           >
             <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-              {/* Header */}
-              <View className="px-6 pt-4 pb-6">
-                <Text className="text-white text-3xl font-bold mb-2">Host a Table</Text>
-                <Text className="text-white/60 text-sm">
-                  Set up your poker game and invite players
-                </Text>
+              {/* Header with Logo */}
+              <View className="px-6 pt-4 pb-6 border-b border-white/10">
+                <View className="items-center mb-4">
+                  <Image
+                    source={require("../../assets/image-1763857797.png")}
+                    style={{ width: 180, height: 90 }}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text className="text-white text-2xl font-bold text-center">Host a Table</Text>
               </View>
 
               <View className="px-6 pb-6 space-y-5">
@@ -203,7 +207,7 @@ export default function HostTableScreen() {
                         }}
                         className={`flex-1 py-3 rounded-xl ${
                           maxPlayers === num
-                            ? "bg-emerald-500"
+                            ? "bg-amber-500"
                             : "bg-white/10 border border-white/10"
                         } active:opacity-80`}
                       >
@@ -314,7 +318,7 @@ export default function HostTableScreen() {
                     parseFloat(potRake) > 4.2 ||
                     isCreating
                       ? "bg-white/10 opacity-50"
-                      : "bg-emerald-500 active:opacity-80"
+                      : "bg-amber-500 active:opacity-80"
                   }`}
                 >
                   <Text className="text-white text-center text-lg font-semibold">

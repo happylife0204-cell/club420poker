@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, Modal } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -35,17 +35,24 @@ export default function MarketplaceScreen() {
         style={{ flex: 1 }}
       >
         <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-          {/* Header */}
-          <View className="px-6 pt-4 pb-6">
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-white text-3xl font-bold">Marketplace</Text>
+          {/* Header with Logo */}
+          <View className="px-6 pt-4 pb-6 border-b border-white/10">
+            <View className="items-center mb-4">
+              <Image
+                source={require("../../assets/image-1763857797.png")}
+                style={{ width: 180, height: 90 }}
+                resizeMode="contain"
+              />
+            </View>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-white text-2xl font-bold">Marketplace</Text>
               <View className="bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20">
                 <Text className="text-amber-400 font-semibold">
                   {user?.chipBalance.toLocaleString()} CHiP$
                 </Text>
               </View>
             </View>
-            <Text className="text-white/60 text-sm">
+            <Text className="text-white/60 text-sm mt-1">
               Purchase CHiP$ bundles from bankers
             </Text>
           </View>

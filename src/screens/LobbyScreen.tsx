@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { View, Text, Pressable, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,18 +29,25 @@ export default function LobbyScreen() {
     <View className="flex-1 bg-[#0a0f1e]">
       <LinearGradient colors={["#0a0f1e", "#1a2332"]} style={{ flex: 1 }}>
         <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
-          {/* Header */}
-          <View className="px-6 pt-4 pb-6">
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-white text-3xl font-bold">Lobby</Text>
-              <View className="flex-row items-center bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20">
-                <Ionicons name="people" size={16} color="#10b981" />
-                <Text className="text-emerald-400 font-semibold ml-2">
+          {/* Header with Logo */}
+          <View className="px-6 pt-4 pb-6 border-b border-white/10">
+            <View className="items-center mb-4">
+              <Image
+                source={require("../../assets/image-1763857797.png")}
+                style={{ width: 180, height: 90 }}
+                resizeMode="contain"
+              />
+            </View>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-white text-2xl font-bold">Lobby</Text>
+              <View className="flex-row items-center bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20">
+                <Ionicons name="people" size={16} color="#f59e0b" />
+                <Text className="text-amber-400 font-semibold ml-2">
                   {activeTables.length} Tables
                 </Text>
               </View>
             </View>
-            <Text className="text-white/60 text-sm">
+            <Text className="text-white/60 text-sm mt-1">
               Join a table or create your own
             </Text>
           </View>

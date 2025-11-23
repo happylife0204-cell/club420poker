@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, Modal } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -41,10 +41,16 @@ export default function ProfileScreen() {
       <LinearGradient colors={["#0a0f1e", "#1a2332"]} style={{ flex: 1 }}>
         <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
           <ScrollView className="flex-1">
-            {/* Header */}
-            <View className="px-6 pt-4 pb-6">
-              <Text className="text-white text-3xl font-bold mb-2">Profile</Text>
-              <Text className="text-white/60 text-sm">Manage your account and stats</Text>
+            {/* Header with Logo */}
+            <View className="px-6 pt-4 pb-6 border-b border-white/10">
+              <View className="items-center mb-4">
+                <Image
+                  source={require("../../assets/image-1763857797.png")}
+                  style={{ width: 180, height: 90 }}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text className="text-white text-2xl font-bold text-center">Profile</Text>
             </View>
 
             {/* Profile Card */}
@@ -52,8 +58,8 @@ export default function ProfileScreen() {
               <View className="bg-white/5 rounded-3xl p-6 border border-white/10">
                 {/* Avatar & Username */}
                 <View className="items-center mb-6">
-                  <View className="bg-emerald-500/20 w-24 h-24 rounded-full items-center justify-center mb-4 border-4 border-emerald-500/30">
-                    <Text className="text-emerald-400 text-4xl font-bold">
+                  <View className="bg-amber-500/20 w-24 h-24 rounded-full items-center justify-center mb-4 border-4 border-amber-500/30">
+                    <Text className="text-amber-400 text-4xl font-bold">
                       {user.username ? user.username.charAt(0).toUpperCase() : "?"}
                     </Text>
                   </View>
