@@ -27,6 +27,98 @@ export default function PokerGameScreen() {
   const [maxRaise, setMaxRaise] = useState(0);
   const [raiseAmount, setRaiseAmount] = useState(0);
   const [connected, setConnected] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+
+  // Create mock game state for demo
+  const createMockGameState = useCallback((): GameState => {
+    const mockPlayers: TablePlayer[] = [
+      {
+        userId: user?.id || "player1",
+        username: user?.username || "You",
+        chipStack: 950,
+        position: 0,
+        isDealer: false,
+        isSmallBlind: false,
+        isBigBlind: false,
+        status: "active",
+      },
+      {
+        userId: "player2",
+        username: "Player 2",
+        chipStack: 800,
+        position: 1,
+        isDealer: true,
+        isSmallBlind: false,
+        isBigBlind: false,
+        status: "active",
+      },
+      {
+        userId: "player3",
+        username: "Player 3",
+        chipStack: 1200,
+        position: 2,
+        isDealer: false,
+        isSmallBlind: true,
+        isBigBlind: false,
+        status: "active",
+      },
+      {
+        userId: "player4",
+        username: "Player 4",
+        chipStack: 0,
+        position: 3,
+        isDealer: false,
+        isSmallBlind: false,
+        isBigBlind: true,
+        status: "folded",
+      },
+    ];
+
+    const mockCommunityCards: Card[] = [
+      { suit: "hearts", rank: "A" },
+      { suit: "diamonds", rank: "K" },
+      { suit: "clubs", rank: "Q" },
+      { suit: "spades", rank: "J" },
+      { suit: "hearts", rank: "10" },
+    ];
+
+    return {
+      tableId,
+      pot: 200,
+      communityCards: mockCommunityCards,
+      currentBet: 50,
+      currentPlayerTurn: 0,
+      round: "river",
+      players: mockPlayers,
+    };
+  }, [tableId, user]);
+
+  // Load demo mode after 3 seconds if no server connection
+  useEffect(() => {
+    const demoTimeout = setTimeout(() => {
+      if (!gameState) {
+        setDemoMode(true);
+        const mockState = createMockGameState();
+        setGameState(mockState);
+
+        const mockHoleCards: Card[] = [
+          { suit: "hearts", rank: "A" },
+          { suit: "spades", rank: "A" },
+        ];
+        setHoleCards(mockHoleCards);
+
+        setIsMyTurn(true);
+        setCurrentBet(50);
+        setMinRaise(100);
+        setMaxRaise(950);
+        setRaiseAmount(100);
+
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    }, 3000);
+
+    return () => clearTimeout(demoTimeout);
+  }, [gameState, createMockGameState]);
 
   useEffect(() => {
     if (!user) return;
@@ -142,7 +234,9 @@ export default function PokerGameScreen() {
     return (
       <View className="flex-1 bg-black items-center justify-center">
         <LinearGradient colors={["#000000", "#0a0f1e", "#000000"]} style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "center" }}>
-          <Text className="text-white text-xl">Connecting to table...</Text>
+          <Ionicons name="game-controller" size={60} color="#f59e0b" />
+          <Text className="text-white text-xl mt-4">Connecting to table...</Text>
+          <Text className="text-white/60 text-sm mt-2">Loading demo in 3 seconds</Text>
         </LinearGradient>
       </View>
     );
@@ -160,8 +254,15 @@ export default function PokerGameScreen() {
             <Pressable onPress={handleLeave} className="bg-white/5 px-4 py-2 rounded-xl active:opacity-80">
               <Text className="text-red-400 font-semibold">Leave</Text>
             </Pressable>
-            <View className="bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20">
-              <Text className="text-amber-400 font-semibold">Pot: {gameState.pot.toLocaleString()} CHiP$</Text>
+            <View className="flex-row items-center space-x-2">
+              {demoMode && (
+                <View className="bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                  <Text className="text-blue-300 text-xs font-bold">DEMO MODE</Text>
+                </View>
+              )}
+              <View className="bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20">
+                <Text className="text-amber-400 font-semibold">Pot: {gameState.pot.toLocaleString()} CHiP$</Text>
+              </View>
             </View>
             <View className="bg-white/5 px-4 py-2 rounded-xl">
               <Text className="text-white/70 font-semibold">{gameState.round}</Text>
