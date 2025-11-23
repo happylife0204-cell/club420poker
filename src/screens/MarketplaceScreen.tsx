@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, Alert } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -244,18 +244,28 @@ function PurchaseModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 bg-black/80 justify-end">
-        <View className="bg-[#0a0f1e] rounded-t-3xl border-t-2 border-emerald-500/20">
-          <SafeAreaView edges={["bottom"]}>
-            {/* Header */}
-            <View className="px-6 pt-6 pb-4 flex-row items-center justify-between border-b border-white/10">
-              <Text className="text-white text-2xl font-bold">Purchase Bundle</Text>
-              <Pressable onPress={onClose} className="bg-white/5 p-2 rounded-full">
-                <Ionicons name="close" size={24} color="white" />
-              </Pressable>
-            </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 bg-black/80 justify-end">
+            <View className="bg-[#0a0f1e] rounded-t-3xl border-t-2 border-emerald-500/20">
+              <SafeAreaView edges={["bottom"]}>
+                {/* Header */}
+                <View className="px-6 pt-6 pb-4 flex-row items-center justify-between border-b border-white/10">
+                  <Text className="text-white text-2xl font-bold">Purchase Bundle</Text>
+                  <Pressable onPress={onClose} className="bg-white/5 p-2 rounded-full">
+                    <Ionicons name="close" size={24} color="white" />
+                  </Pressable>
+                </View>
 
-            <ScrollView className="px-6 py-6" style={{ maxHeight: 500 }}>
+                <ScrollView
+                  className="px-6 py-6"
+                  style={{ maxHeight: 500 }}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                >
               {/* Bundle Summary */}
               <View className="bg-emerald-500/10 rounded-2xl p-5 border border-emerald-500/20 mb-6">
                 <Text className="text-white/70 text-sm mb-2">You will receive</Text>
@@ -396,10 +406,12 @@ function PurchaseModal({
                   ⚠️ IMPORTANT: Real Money Trading (RMT) with CHiP$ is against our Terms of Service. While we cannot detect or prevent it, we strongly advise against it. All purchases are final.
                 </Text>
               </View>
-            </ScrollView>
-          </SafeAreaView>
-        </View>
-      </View>
+                </ScrollView>
+              </SafeAreaView>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

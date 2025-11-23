@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, Modal, Image } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -353,80 +353,93 @@ function SendChipsModal({ visible, onClose }: { visible: boolean; onClose: () =>
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 bg-black/80 justify-end">
-        <View className="bg-[#0a0f1e] rounded-t-3xl border-t-2 border-emerald-500/20">
-          <SafeAreaView edges={["bottom"]}>
-            <View className="px-6 pt-6 pb-4 flex-row items-center justify-between border-b border-white/10">
-              <Text className="text-white text-2xl font-bold">Send CHiP$</Text>
-              <Pressable onPress={onClose} className="bg-white/5 p-2 rounded-full">
-                <Ionicons name="close" size={24} color="white" />
-              </Pressable>
-            </View>
-
-            <View className="px-6 py-6 space-y-4">
-              <View className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
-                <Text className="text-emerald-400 text-sm">
-                  Your Balance: {user?.chipBalance.toLocaleString()} CHiP$
-                </Text>
-              </View>
-
-              <View>
-                <Text className="text-white/70 text-sm mb-2 ml-1">Recipient Username</Text>
-                <TextInput
-                  value={recipient}
-                  onChangeText={setRecipient}
-                  placeholder="username"
-                  placeholderTextColor="#ffffff40"
-                  autoCapitalize="none"
-                  className="bg-white/10 text-white rounded-xl px-4 py-4 text-lg border border-white/10"
-                />
-              </View>
-
-              <View>
-                <Text className="text-white/70 text-sm mb-2 ml-1">Amount</Text>
-                <TextInput
-                  value={amount}
-                  onChangeText={setAmount}
-                  placeholder="0"
-                  placeholderTextColor="#ffffff40"
-                  keyboardType="decimal-pad"
-                  className="bg-white/10 text-white rounded-xl px-4 py-4 text-lg border border-white/10"
-                />
-              </View>
-
-              <Pressable
-                onPress={handleSend}
-                disabled={
-                  !recipient.trim() ||
-                  !amount.trim() ||
-                  parseFloat(amount) <= 0 ||
-                  (user && parseFloat(amount) > user.chipBalance) ||
-                  isProcessing
-                }
-                className={`bg-emerald-500 rounded-xl py-4 ${
-                  !recipient.trim() ||
-                  !amount.trim() ||
-                  parseFloat(amount) <= 0 ||
-                  (user && parseFloat(amount) > user.chipBalance) ||
-                  isProcessing
-                    ? "opacity-50"
-                    : "active:opacity-80"
-                }`}
-              >
-                <Text className="text-white text-center text-lg font-semibold">
-                  {isProcessing ? "Sending..." : "Send CHiP$"}
-                </Text>
-              </Pressable>
-
-              {user && amount && parseFloat(amount) > user.chipBalance && (
-                <View className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
-                  <Text className="text-red-300 text-sm">Insufficient balance</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className="flex-1 bg-black/80 justify-end">
+            <View className="bg-[#0a0f1e] rounded-t-3xl border-t-2 border-emerald-500/20">
+              <SafeAreaView edges={["bottom"]}>
+                <View className="px-6 pt-6 pb-4 flex-row items-center justify-between border-b border-white/10">
+                  <Text className="text-white text-2xl font-bold">Send CHiP$</Text>
+                  <Pressable onPress={onClose} className="bg-white/5 p-2 rounded-full">
+                    <Ionicons name="close" size={24} color="white" />
+                  </Pressable>
                 </View>
-              )}
+
+                <ScrollView
+                  className="px-6 py-6"
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                >
+                  <View className="space-y-4">
+                    <View className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
+                      <Text className="text-emerald-400 text-sm">
+                        Your Balance: {user?.chipBalance.toLocaleString()} CHiP$
+                      </Text>
+                    </View>
+
+                    <View>
+                      <Text className="text-white/70 text-sm mb-2 ml-1">Recipient Username</Text>
+                      <TextInput
+                        value={recipient}
+                        onChangeText={setRecipient}
+                        placeholder="username"
+                        placeholderTextColor="#ffffff40"
+                        autoCapitalize="none"
+                        className="bg-white/10 text-white rounded-xl px-4 py-4 text-lg border border-white/10"
+                      />
+                    </View>
+
+                    <View>
+                      <Text className="text-white/70 text-sm mb-2 ml-1">Amount</Text>
+                      <TextInput
+                        value={amount}
+                        onChangeText={setAmount}
+                        placeholder="0"
+                        placeholderTextColor="#ffffff40"
+                        keyboardType="decimal-pad"
+                        className="bg-white/10 text-white rounded-xl px-4 py-4 text-lg border border-white/10"
+                      />
+                    </View>
+
+                    <Pressable
+                      onPress={handleSend}
+                      disabled={
+                        !recipient.trim() ||
+                        !amount.trim() ||
+                        parseFloat(amount) <= 0 ||
+                        (user && parseFloat(amount) > user.chipBalance) ||
+                        isProcessing
+                      }
+                      className={`bg-emerald-500 rounded-xl py-4 ${
+                        !recipient.trim() ||
+                        !amount.trim() ||
+                        parseFloat(amount) <= 0 ||
+                        (user && parseFloat(amount) > user.chipBalance) ||
+                        isProcessing
+                          ? "opacity-50"
+                          : "active:opacity-80"
+                      }`}
+                    >
+                      <Text className="text-white text-center text-lg font-semibold">
+                        {isProcessing ? "Sending..." : "Send CHiP$"}
+                      </Text>
+                    </Pressable>
+
+                    {user && amount && parseFloat(amount) > user.chipBalance && (
+                      <View className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
+                        <Text className="text-red-300 text-sm">Insufficient balance</Text>
+                      </View>
+                    )}
+                  </View>
+                </ScrollView>
+              </SafeAreaView>
             </View>
-          </SafeAreaView>
-        </View>
-      </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
