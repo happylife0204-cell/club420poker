@@ -1,39 +1,17 @@
 import { Alert } from "react-native";
-import { initStripe, useStripe } from "@stripe/stripe-react-native";
+import { useStripe } from "@stripe/stripe-react-native";
 
 // Environment variables
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 const STRIPE_BACKEND_URL = process.env.EXPO_PUBLIC_STRIPE_BACKEND_URL || "http://localhost:3001";
 
-// Initialize Stripe on app start
-export const initializeStripe = async () => {
-  if (!STRIPE_PUBLISHABLE_KEY) {
-    console.warn("Stripe publishable key not configured");
-    return false;
-  }
-
-  try {
-    await initStripe({
-      publishableKey: STRIPE_PUBLISHABLE_KEY,
-      merchantIdentifier: "merchant.com.club420poker",
-      urlScheme: "club420poker",
-    });
-    return true;
-  } catch (error) {
-    console.error("Failed to initialize Stripe:", error);
-    return false;
-  }
-};
-
 // Stripe service for all payment operations
 class StripeService {
-  private initialized = false;
-
-  async ensureInitialized(): Promise<boolean> {
-    if (!this.initialized) {
-      this.initialized = await initializeStripe();
-    }
-    return this.initialized;
+  /**
+   * Check if Stripe is properly configured
+   */
+  isConfigured(): boolean {
+    return !!STRIPE_PUBLISHABLE_KEY && !!STRIPE_BACKEND_URL && STRIPE_PUBLISHABLE_KEY !== "pk_test_placeholder";
   }
 
   /**
@@ -212,13 +190,6 @@ class StripeService {
       );
     });
   }
-
-  /**
-   * Check if Stripe is properly configured
-   */
-  isConfigured(): boolean {
-    return !!STRIPE_PUBLISHABLE_KEY && !!STRIPE_BACKEND_URL;
-  }
 }
 
 export const stripeService = new StripeService();
@@ -239,13 +210,6 @@ export const useStripePayment = () => {
       // Check if Stripe is configured
       if (!stripeService.isConfigured()) {
         return await stripeService.mockPurchase(bundleId, amount);
-      }
-
-      // Ensure Stripe is initialized
-      const initialized = await stripeService.ensureInitialized();
-      if (!initialized) {
-        Alert.alert("Error", "Payment system not initialized");
-        return false;
       }
 
       // Create payment intent

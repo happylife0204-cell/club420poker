@@ -1,11 +1,9 @@
-import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import RootNavigator from "./src/navigation/RootNavigator";
-import { initializeStripe } from "./src/services/stripeService";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -28,14 +26,11 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 
 */
 
-const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
+// Stripe key - if not configured, we'll use a placeholder to prevent crash
+// The app will show "Stripe Not Configured" alerts when attempting payments
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder";
 
 export default function App() {
-  useEffect(() => {
-    // Initialize Stripe on app start
-    initializeStripe();
-  }, []);
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
