@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~5.0.5",
     "@expo/react-native-action-sheet": "^4.1.1",
     "@expo/vector-icons": "^14.1.0",
     "@gorhom/bottom-sheet": "^5",
@@ -112,7 +113,7 @@
     "react-native-svg": "15.11.2",
     "react-native-view-shot": "~4.0.3",
     "react-native-vision-camera": "^4.6.4",
-    "react-native-web": "~0.20.0",
+    "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.2.0",
