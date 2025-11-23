@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Image } from "react-native";
+import { View, Text, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Image, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -144,14 +144,21 @@ function MainLoginOptions({ onMethodSelect }: { onMethodSelect: (method: "telegr
 function TelegramLogin({ onBack, onSuccess }: { onBack: () => void; onSuccess: () => void }) {
   const [telegramUsername, setTelegramUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showToS, setShowToS] = useState(false);
 
   const handleLogin = () => {
     if (!telegramUsername.trim()) {
       return;
     }
 
-    setIsLoading(true);
+    // Show ToS modal before creating account
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setShowToS(true);
+  };
+
+  const handleAcceptToS = () => {
+    setShowToS(false);
+    setIsLoading(true);
 
     // Simulate Telegram auth
     setTimeout(() => {
@@ -164,6 +171,11 @@ function TelegramLogin({ onBack, onSuccess }: { onBack: () => void; onSuccess: (
       setIsLoading(false);
       onSuccess();
     }, 1000);
+  };
+
+  const handleDeclineToS = () => {
+    setShowToS(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
   return (
@@ -218,6 +230,13 @@ function TelegramLogin({ onBack, onSuccess }: { onBack: () => void; onSuccess: (
           </Text>
         </View>
       </View>
+
+      {/* Terms of Service Modal */}
+      <TermsOfServiceModal
+        visible={showToS}
+        onAccept={handleAcceptToS}
+        onDecline={handleDeclineToS}
+      />
     </View>
   );
 }
@@ -228,6 +247,7 @@ function EmailLogin({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [showVerification, setShowVerification] = useState(false);
+  const [showToS, setShowToS] = useState(false);
 
   const handleSendVerification = () => {
     if (!email.trim() || !username.trim()) {
@@ -249,16 +269,27 @@ function EmailLogin({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =
       return;
     }
 
+    // Show ToS modal before creating account
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setShowToS(true);
+  };
+
+  const handleAcceptToS = () => {
+    setShowToS(false);
     setIsVerifying(true);
 
-    // Simulate verification
+    // Simulate verification and account creation
     setTimeout(() => {
       const { useAuthStore } = require("../state/authStore");
       useAuthStore.getState().loginWithEmail(email, username, undefined);
       setIsVerifying(false);
       onSuccess();
     }, 1000);
+  };
+
+  const handleDeclineToS = () => {
+    setShowToS(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
   return (
@@ -355,6 +386,13 @@ function EmailLogin({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =
           </View>
         )}
       </View>
+
+      {/* Terms of Service Modal */}
+      <TermsOfServiceModal
+        visible={showToS}
+        onAccept={handleAcceptToS}
+        onDecline={handleDeclineToS}
+      />
     </View>
   );
 }
@@ -366,6 +404,8 @@ function C420Login({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =>
   const [transferAmount, setTransferAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
+  const [showToS, setShowToS] = useState(false);
+  const [pendingTransferData, setPendingTransferData] = useState<{ amount: number; txId: string; chipsReceived: number } | null>(null);
   const destinationAddress = HASHPACK_CONFIG.RECEIVER_ACCOUNT_ID;
 
   const handleConnectWallet = async () => {
@@ -437,6 +477,40 @@ function C420Login({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =>
       // Calculate CHiP$ received
       const chipsReceived = hashPackWallet.calculateChips(amount);
 
+      // Store pending transfer data and show ToS
+      setPendingTransferData({ amount, txId, chipsReceived });
+      setIsProcessing(false);
+      setShowToS(true);
+    } catch (err: any) {
+      console.error("Transfer error:", err);
+      setError(err.message || "Transfer failed");
+
+      // For testing purposes
+      Alert.alert(
+        "Transaction Not Sent",
+        "Real HashPack transactions require proper setup. Use mock for testing?",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => setIsProcessing(false) },
+          {
+            text: "Mock Transfer",
+            onPress: () => {
+              const chipsReceived = amount * 50000;
+              setPendingTransferData({ amount, txId: "mock_txn_" + Date.now(), chipsReceived });
+              setIsProcessing(false);
+              setShowToS(true);
+            },
+          },
+        ]
+      );
+    }
+  };
+
+  const handleAcceptToS = () => {
+    setShowToS(false);
+
+    if (pendingTransferData) {
+      const { amount, txId, chipsReceived } = pendingTransferData;
+
       // Login user with C420
       const { useAuthStore } = require("../state/authStore");
       useAuthStore.getState().loginWithC420(accountId, amount);
@@ -448,30 +522,13 @@ function C420Login({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =>
         `You sent ${amount} C420 and received ${chipsReceived.toLocaleString()} CHiP$\n\nTransaction: ${txId}`,
         [{ text: "OK", onPress: onSuccess }]
       );
-    } catch (err: any) {
-      console.error("Transfer error:", err);
-      setError(err.message || "Transfer failed");
-
-      // For testing purposes
-      Alert.alert(
-        "Transaction Not Sent",
-        "Real HashPack transactions require proper setup. Use mock for testing?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Mock Transfer",
-            onPress: () => {
-              const { useAuthStore } = require("../state/authStore");
-              useAuthStore.getState().loginWithC420(accountId, amount);
-              setIsProcessing(false);
-              onSuccess();
-            },
-          },
-        ]
-      );
-    } finally {
-      setIsProcessing(false);
     }
+  };
+
+  const handleDeclineToS = () => {
+    setShowToS(false);
+    setPendingTransferData(null);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
   return (
@@ -583,6 +640,184 @@ function C420Login({ onBack, onSuccess }: { onBack: () => void; onSuccess: () =>
           </View>
         )}
       </View>
+
+      {/* Terms of Service Modal */}
+      <TermsOfServiceModal
+        visible={showToS}
+        onAccept={handleAcceptToS}
+        onDecline={handleDeclineToS}
+      />
     </View>
+  );
+}
+
+function TermsOfServiceModal({
+  visible,
+  onAccept,
+  onDecline,
+}: {
+  visible: boolean;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+
+  const handleScroll = (event: any) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToBottom = 20;
+    const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+
+    if (isAtBottom && !hasScrolledToEnd) {
+      setHasScrolledToEnd(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <View className="flex-1 bg-black/95">
+        <SafeAreaView style={{ flex: 1 }}>
+          <View className="flex-1 px-6 pt-4">
+            {/* Header */}
+            <View className="mb-6">
+              <Text className="text-white text-2xl font-bold text-center mb-2">
+                Terms of Service
+              </Text>
+              <Text className="text-white/60 text-center text-sm">
+                Please read and scroll to the bottom to continue
+              </Text>
+            </View>
+
+            {/* Terms Content */}
+            <ScrollView
+              className="flex-1 bg-white/5 rounded-2xl p-5 border border-white/10 mb-6"
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              showsVerticalScrollIndicator={true}
+            >
+              <Text className="text-white text-lg font-bold mb-4">Club 420 Poker - Terms of Service</Text>
+
+              <Text className="text-white/90 text-base mb-4">
+                Last Updated: {new Date().toLocaleDateString()}
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">1. Acceptance of Terms</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                By accessing or using Club 420 Poker (&quot;the App&quot;), you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not use the App.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">2. Virtual Currency (CHiP$)</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                CHiP$ is an in-app virtual currency used exclusively for gameplay within Club 420 Poker. CHiP$ has no real-world monetary value and cannot be exchanged for real money, goods, or services outside the App.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">3. Real Money Trading (RMT) Prohibition</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                Users are strictly prohibited from buying, selling, or exchanging CHiP$ for real money or any items of real-world value. Any violation of this policy may result in immediate account termination without refund.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">4. Banker System</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                The Banker system allows qualified users to list CHiP$ bundles in the marketplace. All transactions within the App are for virtual currency only. Bankers who accept card payments do so through integrated payment processors and are subject to applicable fees as disclosed in the App.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">5. C420 Token Integration</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                C420 token holders on the Hedera network may exchange their tokens for CHiP$ at a fixed rate (1 C420 = 50,000 CHiP$) and receive OG Banker status. This exchange is voluntary and irreversible. By participating, you acknowledge that C420 tokens are transferred to the designated wallet address and cannot be refunded.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">6. User Conduct</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                Users must conduct themselves respectfully and in accordance with all applicable laws. Cheating, harassment, exploitation of bugs, or any malicious activity is strictly prohibited and may result in account suspension or termination.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">7. Account Security</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                You are responsible for maintaining the confidentiality of your account credentials. Club 420 Poker is not liable for any loss or damage arising from unauthorized account access due to your failure to protect your login information.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">8. No Gambling or Wagering</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                Club 420 Poker is a social gaming platform for entertainment purposes only. The App does not facilitate real money gambling, betting, or wagering. All poker games are played with virtual currency (CHiP$) that has no real-world value.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">9. Age Requirement</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                You must be at least 18 years old (or the legal age of majority in your jurisdiction) to use the App. By using the App, you represent and warrant that you meet this age requirement.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">10. Privacy and Data</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                We collect and process user data as described in our Privacy Policy. By using the App, you consent to such collection and processing. We do not sell your personal information to third parties.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">11. Intellectual Property</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                All content, trademarks, logos, and intellectual property within the App are owned by Club 420 Poker or its licensors. You may not copy, modify, distribute, or create derivative works without explicit permission.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">12. Disclaimers and Limitations of Liability</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                The App is provided &quot;as is&quot; without warranties of any kind. Club 420 Poker is not liable for any indirect, incidental, consequential, or punitive damages arising from your use of the App, including but not limited to loss of CHiP$, account suspension, or service interruptions.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">13. Modifications to Terms</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                We reserve the right to modify these Terms of Service at any time. Continued use of the App following any changes constitutes acceptance of the revised terms.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">14. Termination</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                We may suspend or terminate your account at our sole discretion for any violation of these Terms or for any other reason. Upon termination, you will lose access to your account and any associated CHiP$ balance.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">15. Governing Law</Text>
+              <Text className="text-white/80 text-sm mb-4">
+                These Terms of Service are governed by and construed in accordance with applicable laws. Any disputes arising from these terms will be resolved through binding arbitration.
+              </Text>
+
+              <Text className="text-white font-semibold text-base mb-2">16. Contact Information</Text>
+              <Text className="text-white/80 text-sm mb-6">
+                For questions or concerns about these Terms of Service, please contact us through the App support channels.
+              </Text>
+
+              <Text className="text-amber-400 text-center text-sm font-semibold mb-4">
+                {hasScrolledToEnd ? "✓ You have read the entire Terms of Service" : "↓ Scroll to the bottom to continue"}
+              </Text>
+            </ScrollView>
+
+            {/* Action Buttons */}
+            <View className="pb-4 space-y-3">
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  onAccept();
+                }}
+                disabled={!hasScrolledToEnd}
+                className={`rounded-xl py-4 ${
+                  hasScrolledToEnd ? "bg-emerald-500 active:opacity-80" : "bg-white/10 opacity-50"
+                }`}
+              >
+                <Text className="text-white text-center text-lg font-semibold">
+                  I Agree - Create Account
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  onDecline();
+                }}
+                className="bg-white/5 rounded-xl py-3 active:opacity-80"
+              >
+                <Text className="text-white/60 text-center font-semibold">
+                  Decline
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </SafeAreaView>
+      </View>
+    </Modal>
   );
 }

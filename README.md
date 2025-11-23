@@ -39,6 +39,10 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
 
 ### Authentication System
 - **Landing Page Required**: All users must login via the landing page when app starts
+- **Terms of Service**: Users must read and accept Terms of Service before account creation
+  - Interactive scroll-to-end requirement
+  - Accept button only activates after scrolling to bottom
+  - Covers CHiP$ virtual currency, RMT prohibition, age requirements, and user conduct
 - **Telegram Login**: Quick login using Telegram credentials with automatic avatar sync
 - **Email Sign Up**: Traditional email registration with verification code system
 - **C420 Token Login**: Exclusive login for C420 token holders on Hedera blockchain
