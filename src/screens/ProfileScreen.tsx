@@ -9,6 +9,7 @@ import { useAppStore } from "../state/appStore";
 
 export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const transactions = useAppStore((s) => s.transactions);
   const [showSendModal, setShowSendModal] = useState(false);
 
@@ -26,6 +27,11 @@ export default function ProfileScreen() {
   const handleSendChips = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowSendModal(true);
+  };
+
+  const handleLogout = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    logout();
   };
 
   if (!user) {
@@ -215,6 +221,19 @@ export default function ProfileScreen() {
                 </View>
               </View>
             )}
+
+            {/* Logout Button */}
+            <View className="px-6 mb-6">
+              <Pressable
+                onPress={handleLogout}
+                className="bg-red-500/10 border-2 border-red-500/30 rounded-2xl p-4 active:opacity-80"
+              >
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+                  <Text className="text-red-400 font-bold text-lg ml-3">Logout</Text>
+                </View>
+              </Pressable>
+            </View>
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
