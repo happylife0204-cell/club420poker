@@ -21,8 +21,14 @@ function MainTabs() {
   // Initialize mock data
   useMockData();
 
+  const user = useAuthStore((s) => s.user);
+
+  // Determine initial route based on login method
+  const initialRouteName = user?.loginMethod === "c420" ? "Marketplace" : "Profile";
+
   return (
     <Tab.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

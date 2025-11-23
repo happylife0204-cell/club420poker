@@ -38,12 +38,16 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
 ## Features
 
 ### Authentication System
+- **Landing Page Required**: All users must login via the landing page when app starts
 - **Telegram Login**: Quick login using Telegram credentials with automatic avatar sync
 - **Email Sign Up**: Traditional email registration with verification code system
 - **C420 Token Login**: Exclusive login for C420 token holders on Hedera blockchain
   - Token ID: 0.0.10117135
   - Exchange rate: 1 C420 = 50,000 CHiP$
   - Instant OG Banker status with 1% lifetime fee
+- **Initial Screen After Login**:
+  - Telegram/Email users → Profile screen (to set up their profile)
+  - C420 users → Marketplace (ready to purchase CHiP$ with their balance)
 
 ### Currency System
 - **CHiP$**: In-app currency for all poker activities
@@ -52,7 +56,6 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
 - Transaction history tracking with P&L calculations
 
 ### Marketplace
-- Default landing tab after login
 - Browse CHiP$ bundles listed by bankers
 - Purchase options:
   - Card payment (instant)
@@ -61,6 +64,7 @@ See `POKER_IMPLEMENTATION.md`, `STRIPE_IMPLEMENTATION.md`, and `COMPLETE_IMPLEME
 - Real-time bundle availability
 
 ### Profile Tab
+- **Default landing screen** for Telegram and Email users after login
 - View and manage user profile
 - **Edit Profile Features**:
   - Upload custom avatar from photo library
